@@ -1,13 +1,9 @@
-pragma solidity ^0.5.7;
+pragma solidity ^0.5.8;
 
 import "./SafeMath.sol";
 import "./Address.sol";
 import "./SmartLotteryGame.sol";
 
-/**
- * @title Wallet
- * @dev The Wallet contract is the payable contract with a term of life in a single round.
- */
 contract Wallet {
     using Address for address;
     using SafeMath for uint256;

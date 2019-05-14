@@ -1,12 +1,13 @@
-pragma solidity ^0.5.7;
+pragma solidity ^0.5.8;
 /**
     INSTRUCTION:
     Send more then or equal to [minPayment] or 0.01 ETH to one of Wallet Contract address
     [wallet_0, wallet_1, wallet_2], after round end send to This contract 0 ETH
-    transaction and if you choise won, take your winnings.
+    transaction and if you choice won, take your winnings.
 
-    DAPP:     https://smartlottery.clab
     BOT:      http://t.me/SmartLotteryGame_bot
+    DAPP:     https://smartlottery.clab
+    GITHUB:   https://github.com/SmartLotteryGames
     LICENSE:  Under proprietary rights. All rights reserved.
               Except <lib.SafeMath, cont.Ownable, lib.Address> under The MIT License (MIT)
     AUTHOR:   http://t.me/pironmind
@@ -26,9 +27,11 @@ contract SmartLotteryGame is Ownable {
     event Deposited(address indexed payee, uint256 weiAmount);
     event WinnerWallet(address indexed wallet, uint256 bank);
 
+    string public version = '2.1.0';
+
     address public secure;
 
-    uint public games = 1;
+    uint public games = 32;
     uint256 public minPayment = 10**16;
 
     Wallet public wallet_0 = new Wallet(games, minPayment);
@@ -36,11 +39,11 @@ contract SmartLotteryGame is Ownable {
     Wallet public wallet_2 = new Wallet(games, minPayment);
 
     uint256 public finishTime;
-    uint256 constant roundDuration = 86400;
+    uint256 constant roundDuration = 1 days;
 
     uint internal _nonceId = 0;
     uint internal _maxPlayers = 100;
-    uint internal _tp = 0;
+    uint internal _tp;
     uint internal _winner;
     uint8[] internal _particWallets = new uint8[](0);
     uint256 internal _fund;
@@ -50,7 +53,7 @@ contract SmartLotteryGame is Ownable {
     mapping(uint => Wallet) public wallets;
     mapping(address => uint256) private _deposits;
 
-    struct wins{
+    struct wins {
         address winner;
         uint256 time;
         address w0;
@@ -83,7 +86,6 @@ contract SmartLotteryGame is Ownable {
         wallets[0] = wallet_0;
         wallets[1] = wallet_1;
         wallets[2] = wallet_2;
-        finishTime = now.add(roundDuration);
     }
 
     function _deposit(address payee, uint256 amount) internal {
@@ -156,7 +158,7 @@ contract SmartLotteryGame is Ownable {
     }
 
     function _paymentValidator(address _payee, uint256 _amount) internal {
-        if(_payee != address(wallet_0) &&
+        if( _payee != address(wallet_0) &&
         _payee != address(wallet_1) &&
         _payee != address(wallet_2))
         {
@@ -171,7 +173,7 @@ contract SmartLotteryGame is Ownable {
             }
         }
     }
-    
+
     function _closeWallets() internal returns (bool) {
         wallets[0].closeContract();
         wallets[1].closeContract();
@@ -215,7 +217,6 @@ contract SmartLotteryGame is Ownable {
 
         if (now >= finishTime && 1 == _tp) {
             finishTime = now.add(roundDuration);
-            return;
         }
 
         if (now >= finishTime || _tp >= _maxPlayers) {
@@ -231,8 +232,6 @@ contract SmartLotteryGame is Ownable {
                 _log(address(wallets[_winner]), _fund);
                 // clear state
                 _cleanState();
-                // update round
-                finishTime = now.add(roundDuration);
                 // set next game
                 games = games.add(1);
                 // issue new wallets
